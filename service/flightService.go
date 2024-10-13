@@ -10,7 +10,7 @@ import (
 type FlightService interface {
 	QueryFlights(source, destination string) ([]models.Flight, error)
 	GetFlightDetails(flightID int) (*models.Flight, error)
-	ReserveSeats(flightID, seats int) (int, error)
+	ReserveSeats(flightID, seats int) (models.Flight, error)
 }
 
 type FlightServiceImpl struct {
@@ -39,14 +39,14 @@ func (f *FlightServiceImpl) GetFlightDetails(flightID int) (*models.Flight, erro
 }
 
 // ReserveSeats reserves a specified number of seats for a flight.
-func (f *FlightServiceImpl) ReserveSeats(flightID, seats int) (int, error) {
+func (f *FlightServiceImpl) ReserveSeats(flightID, seats int) (models.Flight, error) {
 	var flight models.Flight
 	if err := f.DB.First(&flight, flightID).Error; err != nil {
-		return 0, errors.New("Flight not found")
+		return models.Flight{}, errors.New("Flight not found")
 	}
 	if flight.SeatAvailability < seats {
-		return 0, errors.New("Insufficient seats available")
+		return models.Flight{}, errors.New("Insufficient seats available")
 	}
 	flight.SeatAvailability -= seats
-	return flight.SeatAvailability, f.DB.Save(&flight).Error
+	return flight, f.DB.Save(&flight).Error
 }

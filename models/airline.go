@@ -14,7 +14,21 @@ type Flight struct {
 	SeatAvailability int     `gorm:"not null"`
 }
 
+type RequestFlight struct {
+	ID            int
+	Source        string
+	Destination   string
+	DepartureTime string
+	SeattoBook    int
+	Duration      time.Duration
+}
+
 type ClientInfo struct {
 	ClientAddr *net.UDPAddr
 	Expiry     time.Time
+}
+
+type ClientPoints struct {
+	ClientAddr string  `gorm:"primaryKey;type:varchar(255)"` // Use string to store the UDP address
+	Points     float64 `gorm:"type:double"`                  // Store points as a double
 }
