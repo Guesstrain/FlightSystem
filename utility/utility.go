@@ -10,94 +10,106 @@ import (
 	"github.com/Guesstrain/airline/models"
 )
 
-func DeserializeFlight(data []byte) (int, models.RequestFlight, error) {
+func DeserializeFlight(data []byte) (int, models.RequestFlight, string, error) {
 	var flight models.RequestFlight
 	buffer := bytes.NewBuffer(data)
 
 	// Read the opcode (1 byte)
 	opcode, err := buffer.ReadByte()
 	if err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	fmt.Println("Opcode:", opcode) // You can handle the opcode as needed.
 	opcodeInt := int(opcode)
 	// Read ID
 	idLen, err := buffer.ReadByte()
 	if err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	idBytes := make([]byte, idLen)
 	if _, err := buffer.Read(idBytes); err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	flight.ID, err = strconv.Atoi(string(idBytes))
 	if err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 
 	// Read Source
 	sourceLen, err := buffer.ReadByte()
 	if err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	sourceBytes := make([]byte, sourceLen)
 	if _, err := buffer.Read(sourceBytes); err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	flight.Source = string(sourceBytes)
 
 	// Read Destination
 	destinationLen, err := buffer.ReadByte()
 	if err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	destinationBytes := make([]byte, destinationLen)
 	if _, err := buffer.Read(destinationBytes); err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	flight.Destination = string(destinationBytes)
 
 	// Read DepartureTime
 	departureTimeLen, err := buffer.ReadByte()
 	if err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	departureTimeBytes := make([]byte, departureTimeLen)
 	if _, err := buffer.Read(departureTimeBytes); err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	flight.DepartureTime = string(departureTimeBytes)
 
 	// Read SeattoBook
 	SeattoBookLen, err := buffer.ReadByte()
 	if err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	SeattoBookBytes := make([]byte, SeattoBookLen)
 	if _, err := buffer.Read(SeattoBookBytes); err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	flight.SeattoBook, err = strconv.Atoi(string(SeattoBookBytes))
 	if err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 
 	//Read Duration
 	durationLen, err := buffer.ReadByte()
 	if err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	durationBytes := make([]byte, durationLen)
 	if _, err := buffer.Read(durationBytes); err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	durationInt, err := strconv.Atoi(string(durationBytes))
 	if err != nil {
-		return -1, flight, err
+		return -1, flight, "", err
 	}
 	flight.Duration = time.Duration(durationInt) * time.Second
 
-	return opcodeInt, flight, nil
+	//Read RequestID
+	// Read RequestID
+	requestIDLen, err := buffer.ReadByte()
+	if err != nil {
+		return -1, flight, "", err
+	}
+	requestIDBytes := make([]byte, requestIDLen)
+	if _, err := buffer.Read(requestIDBytes); err != nil {
+		return -1, flight, "", err
+	}
+	requestID := string(requestIDBytes)
+
+	return opcodeInt, flight, requestID, nil
 }
 
 func SerializeFlights(flights []models.Flight, opcode, statuscode byte, message string) ([]byte, error) {

@@ -14,6 +14,7 @@ import (
 )
 
 var monitors = map[int][]*models.ClientInfo{}
+var processedRequests = make(map[string]bool)
 
 func main() {
 	dsn := "root:password@tcp(127.0.0.1:3306)/airline?charset=utf8mb4&parseTime=True&loc=Local"
@@ -51,12 +52,21 @@ func handleRequest(conn *net.UDPConn, db *gorm.DB) {
 		fmt.Println("Error receiving:", err)
 		return
 	}
-	requestType, flight, err := utility.DeserializeFlight(buffer)
+	requestType, flight, requestID, err := utility.DeserializeFlight(buffer)
 	if err != nil {
 		fmt.Println("Error DeserializeFlight:", err)
 		return
 	}
-	fmt.Println("flight info is", flight)
+	if _, exists := processedRequests[requestID]; (requestType == 3 || requestType == 6) && exists {
+		fmt.Println("Duplicate request detected, ignoring...")
+		response, _ := utility.SerializeFlights([]models.Flight{}, byte(requestType), 0, "Duplicate request, executed already")
+		conn.WriteToUDP(response, clientAddr)
+		return
+	}
+	if requestID != "" {
+		processedRequests[requestID] = true
+	}
+	// fmt.Println("flight info is", flight)
 
 	switch requestType {
 	case 1: // Query flights by source and destination
