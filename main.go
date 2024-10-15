@@ -168,6 +168,7 @@ func respondSeatReservation(conn *net.UDPConn, clientAddr *net.UDPAddr, flightSe
 	}
 	clientPoints, _ := pointsService.QueryPoints(clientAddr.String())
 	clientPoints.Points = clientPoints.Points + flight.Airfare*float64(seats)
+
 	_, err = pointsService.UpdatePoints(clientAddr.String(), clientPoints.Points)
 	if err != nil {
 		response, _ := utility.SerializeFlights([]models.Flight{}, 3, 1, err.Error())
@@ -208,8 +209,10 @@ func notifyMonitors(conn *net.UDPConn, flightID int, seats int) {
 			message := fmt.Sprintf("Flight %d seat update: %d", flightID, seats)
 			response, _ := utility.SerializeFlights([]models.Flight{}, 4, 0, message)
 			conn.WriteToUDP(response, client.ClientAddr)
-		} else {
+		} else if i >= 0 && i < len(clients)-1 {
 			clients = append(clients[:i], clients[i+1:]...)
+		} else if i == len(clients)-1 {
+			clients = clients[:i]
 		}
 	}
 	monitors[flightID] = clients

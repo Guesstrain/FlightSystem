@@ -108,7 +108,8 @@ func DeserializeFlight(data []byte) (int, models.RequestFlight, string, error) {
 		return -1, flight, "", err
 	}
 	requestID := string(requestIDBytes)
-
+	fmt.Println("flight:", flight)
+	fmt.Println("requestID:", requestID)
 	return opcodeInt, flight, requestID, nil
 }
 
